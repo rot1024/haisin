@@ -1,3 +1,4 @@
+use actix_web::middleware::Logger;
 use actix_web::{get, web, App, HttpServer, Responder};
 use serde::Deserialize;
 
@@ -20,7 +21,10 @@ async fn index(info: web::Path<(String, String)>) -> impl Responder {
 async fn main() -> std::io::Result<()> {
     let config = envy::from_env::<Config>().expect("Failed to load config.");
 
-    HttpServer::new(|| App::new().service(index))
+    std::env::set_var("RUST_LOG", "actix_web=info");
+    env_logger::init();
+
+    HttpServer::new(|| App::new().wrap(Logger::default()).service(index))
         .bind(("127.0.0.1", config.port))?
         .run()
         .await
