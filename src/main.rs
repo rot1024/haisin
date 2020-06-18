@@ -1,6 +1,11 @@
 use actix_web::middleware::Logger;
-use actix_web::{get, web, App, HttpServer, Responder};
+use actix_web::{get, web, App, HttpResponse, HttpServer, Result};
 use serde::Deserialize;
+use source_impl::{SourceType, Sources};
+use std::str::FromStr;
+
+mod source_impl;
+mod state;
 
 #[cfg(debug_assertions)]
 const IP: &'static str = "127.0.0.1";
@@ -8,7 +13,7 @@ const IP: &'static str = "127.0.0.1";
 #[cfg(not(debug_assertions))]
 const IP: &'static str = "0.0.0.0";
 
-fn default_port() -> u16 {
+const fn default_port() -> u16 {
     3000
 }
 
@@ -18,9 +23,21 @@ struct Config {
     port: u16,
 }
 
-#[get("/{id}/{name}")]
-async fn index(info: web::Path<(String, String)>) -> impl Responder {
-    format!("Hello {}! id:{}", info.1, info.0)
+#[get("/{id}/{name}/feed")]
+async fn index(
+    path: web::Path<(String, String)>,
+    data: web::Data<state::State>,
+) -> Result<HttpResponse> {
+    let t = SourceType::from_str(&path.0)
+        .map_err::<HttpResponse, _>(|_| HttpResponse::NotFound().body("not found"))?;
+
+    let a = data
+        .sources()
+        .fetch(t, &path.1)
+        .await
+        .ok_or(HttpResponse::NotFound().body("not found"))??;
+
+    Ok(HttpResponse::Ok().json(a))
 }
 
 #[actix_rt::main]
@@ -30,8 +47,14 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
-    HttpServer::new(|| App::new().wrap(Logger::default()).service(index))
-        .bind((IP, config.port))?
-        .run()
-        .await
+    HttpServer::new(|| {
+        App::new()
+            .data(state::State::new(Sources::new()))
+            .wrap(Logger::default())
+            .service(index)
+            .default_service(web::route().to(|| HttpResponse::NotFound().body("not found")))
+    })
+    .bind((IP, config.port))?
+    .run()
+    .await
 }
