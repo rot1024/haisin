@@ -2,6 +2,12 @@ use actix_web::middleware::Logger;
 use actix_web::{get, web, App, HttpServer, Responder};
 use serde::Deserialize;
 
+#[cfg(debug_assertions)]
+const IP: &'static str = "127.0.0.1";
+
+#[cfg(not(debug_assertions))]
+const IP: &'static str = "0.0.0.0";
+
 fn default_port() -> u16 {
     3000
 }
@@ -25,7 +31,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     HttpServer::new(|| App::new().wrap(Logger::default()).service(index))
-        .bind(("127.0.0.1", config.port))?
+        .bind((IP, config.port))?
         .run()
         .await
 }
