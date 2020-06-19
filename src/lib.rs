@@ -2,6 +2,8 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
+mod renderer;
+
 #[derive(Debug, Serialize)]
 pub struct Article {
     pub id: String,
