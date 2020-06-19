@@ -1,4 +1,4 @@
-use super::source_impl::Sources;
+use crate::source::Sources;
 
 #[derive(Debug)]
 pub struct State {

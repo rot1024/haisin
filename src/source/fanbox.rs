@@ -10,29 +10,50 @@ pub struct Fanbox;
 
 #[derive(Debug, Deserialize)]
 struct Resp {
+    #[serde(skip_deserializing)]
+    id: String,
     body: Body,
 }
 
 impl Into<Article> for Resp {
     fn into(self) -> Article {
-        Article(
-            self.body
+        let baseurl = format!("https://{}.fanbox.cc", &self.id);
+        Article {
+            id: self.id,
+            url: baseurl.clone(),
+            title: format!(
+                "{} | FANBOX",
+                self.body
+                    .items
+                    .get(0)
+                    .map(|p| p.user.name.clone())
+                    .unwrap_or("".into())
+            ),
+            posts: self
+                .body
                 .items
                 .into_iter()
-                .map(|i| Post {
-                    id: i.id,
-                    author: Author {
-                        id: i.user.user_id,
-                        alias: i.creator_id,
-                        icon_url: i.user.icon_url,
-                        name: i.user.name,
-                    },
-                    title: i.title,
-                    published_at: i.published_datetime,
-                    image_url: i.cover_image_url,
+                .map(|i| {
+                    let url = format!("{}/posts/{}", &baseurl, &i.id);
+                    Post {
+                        author: Author {
+                            id: i.user.user_id,
+                            name: i.user.name,
+                            alias: i.creator_id,
+                            icon_url: i.user.icon_url,
+                        },
+                        id: url.clone(),
+                        title: i.title,
+                        image_url: i.cover_image_url,
+                        published_at: i.published_datetime,
+                        updated_at: i.updated_datetime,
+                        summary: i.excerpt.clone(),
+                        content: i.excerpt,
+                        url,
+                    }
                 })
                 .collect(),
-        )
+        }
     }
 }
 
@@ -49,9 +70,12 @@ struct Item {
     cover_image_url: String,
     #[serde(rename = "publishedDatetime")]
     published_datetime: DateTime<Utc>,
+    #[serde(rename = "updatedDatetime")]
+    updated_datetime: DateTime<Utc>,
     #[serde(rename = "creatorId")]
     creator_id: String,
     user: User,
+    excerpt: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -68,7 +92,7 @@ impl super::Source for Fanbox {
     type Err = Error;
 
     async fn fetch(&self, name: &str) -> Result<Article, Self::Err> {
-        let resp: Resp = Client::default()
+        let mut resp: Resp = Client::default()
             .get(format!(
                 "https://api.fanbox.cc/post.listCreator?creatorId={}&limit=10",
                 name
@@ -79,6 +103,8 @@ impl super::Source for Fanbox {
             .await?
             .json()
             .await?;
+
+        resp.id = name.into();
 
         Ok(resp.into())
     }

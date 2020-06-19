@@ -2,10 +2,10 @@ use actix_web::middleware::Logger;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Result};
 use atom_syndication::Feed;
 use serde::Deserialize;
-use source_impl::{SourceType, Sources};
+use source::{SourceType, Sources};
 use std::str::FromStr;
 
-mod source_impl;
+mod source;
 mod state;
 
 #[cfg(debug_assertions)]
