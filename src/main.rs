@@ -1,5 +1,6 @@
 use actix_web::middleware::Logger;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Result};
+use atom_syndication::Feed;
 use serde::Deserialize;
 use source_impl::{SourceType, Sources};
 use std::str::FromStr;
@@ -31,21 +32,24 @@ async fn index(
     let t = SourceType::from_str(&path.0)
         .map_err::<HttpResponse, _>(|_| HttpResponse::NotFound().body("not found"))?;
 
-    let a = data
+    let feed: Feed = data
         .sources()
         .fetch(t, &path.1)
         .await
-        .ok_or(HttpResponse::NotFound().body("not found"))??;
+        .ok_or(HttpResponse::NotFound().body("not found"))??
+        .into();
 
-    Ok(HttpResponse::Ok().json(a))
+    Ok(HttpResponse::Ok()
+        .content_type("application/xml")
+        .body(feed.to_string()))
 }
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    let config = envy::from_env::<Config>().expect("Failed to load config.");
-
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
+
+    let config = envy::from_env::<Config>().expect("Failed to load config.");
 
     HttpServer::new(|| {
         App::new()
