@@ -17,7 +17,7 @@ pub struct Post {
     pub author: Author,
     pub id: String,
     pub title: String,
-    pub image_url: String,
+    pub image_url: Option<String>,
     pub published_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub summary: Option<String>,

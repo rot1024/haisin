@@ -67,7 +67,7 @@ struct Item {
     id: String,
     title: String,
     #[serde(rename = "coverImageUrl")]
-    cover_image_url: String,
+    cover_image_url: Option<String>,
     #[serde(rename = "publishedDatetime")]
     published_datetime: DateTime<Utc>,
     #[serde(rename = "updatedDatetime")]
@@ -76,6 +76,7 @@ struct Item {
     creator_id: String,
     user: User,
     excerpt: Option<String>,
+    // body
 }
 
 #[derive(Debug, Deserialize)]
