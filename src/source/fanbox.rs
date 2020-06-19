@@ -1,4 +1,8 @@
-use actix_web::{client::Client, Error, Result};
+use actix_web::{
+    client::Client,
+    error::{ErrorBadGateway, ErrorNotFound},
+    Error, Result,
+};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use feeder::{Article, Author, Post};
@@ -93,7 +97,7 @@ impl super::Source for Fanbox {
     type Err = Error;
 
     async fn fetch(&self, name: &str) -> Result<Article, Self::Err> {
-        let mut resp: Resp = Client::default()
+        let mut resp = Client::default()
             .get(format!(
                 "https://api.fanbox.cc/post.listCreator?creatorId={}&limit=10",
                 name
@@ -101,12 +105,18 @@ impl super::Source for Fanbox {
             .set_header("origin", format!("https://{}.fanbox.cc", name))
             .timeout(Duration::from_secs(10))
             .send()
-            .await?
-            .json()
             .await?;
 
-        resp.id = name.into();
+        if resp.status() == 404 {
+            return Err(ErrorNotFound("not found"));
+        } else if !resp.status().is_success() {
+            return Err(ErrorBadGateway("bad gateway"));
+        }
 
-        Ok(resp.into())
+        let mut body: Resp = resp.json().await?;
+
+        body.id = name.into();
+
+        Ok(body.into())
     }
 }

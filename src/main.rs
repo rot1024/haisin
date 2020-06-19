@@ -40,7 +40,7 @@ async fn index(
         .into();
 
     Ok(HttpResponse::Ok()
-        .content_type("application/atom+xml")
+        .content_type("application/atom+xml; charset=utf-8")
         .body(feed.to_string()))
 }
 
