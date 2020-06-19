@@ -3,7 +3,12 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-pub struct Article(pub Vec<Post>);
+pub struct Article {
+    pub id: String,
+    pub url: String,
+    pub title: String,
+    pub posts: Vec<Post>,
+}
 
 #[derive(Debug, Serialize)]
 pub struct Post {
@@ -12,6 +17,10 @@ pub struct Post {
     pub title: String,
     pub image_url: String,
     pub published_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub summary: Option<String>,
+    pub content: Option<String>,
+    pub url: String,
 }
 
 #[derive(Debug, Serialize)]
