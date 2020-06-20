@@ -1,5 +1,5 @@
 [package]
-name = "feeder"
+name = "haisin"
 version = "0.1.0"
 authors = ["rot1024 <aayhrot@gmail.com>"]
 edition = "2018"
@@ -19,8 +19,8 @@ lazy_static = "1.4.0"
 
 
 [lib]
-name = "feeder"
+name = "haisin"
 
 [[bin]]
-name = "feeder"
+name = "haisin"
 path = "src/main.rs"

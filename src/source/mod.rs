@@ -1,6 +1,6 @@
 use actix_web::{Error, Result};
 use fanbox::Fanbox;
-use feeder::{Article, Source};
+use haisin::{Article, Source};
 use std::str::FromStr;
 
 mod fanbox;

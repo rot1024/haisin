@@ -5,7 +5,7 @@ use actix_web::{
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use feeder::{Article, Author, Post};
+use haisin::{Article, Author, Post};
 use serde::Deserialize;
 use std::time::Duration;
 

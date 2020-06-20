@@ -1,1 +1,1 @@
-web: PORT=$PORT ./target/release/feeder
+web: PORT=$PORT ./target/release/haisin

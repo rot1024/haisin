@@ -633,21 +633,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "feeder"
-version = "0.1.0"
-dependencies = [
- "actix-rt",
- "actix-web",
- "async-trait",
- "atom_syndication",
- "chrono",
- "env_logger",
- "envy",
- "lazy_static",
- "serde",
-]
-
-[[package]]
 name = "flate2"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -834,6 +819,21 @@ dependencies = [
  "slab",
  "tokio",
  "tokio-util 0.3.1",
+]
+
+[[package]]
+name = "haisin"
+version = "0.1.0"
+dependencies = [
+ "actix-rt",
+ "actix-web",
+ "async-trait",
+ "atom_syndication",
+ "chrono",
+ "env_logger",
+ "envy",
+ "lazy_static",
+ "serde",
 ]
 
 [[package]]
