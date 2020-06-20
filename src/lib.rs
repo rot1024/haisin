@@ -4,7 +4,7 @@ use serde::Serialize;
 
 mod renderer;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Article {
     pub id: String,
     pub url: String,
@@ -12,7 +12,7 @@ pub struct Article {
     pub posts: Vec<Post>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Post {
     pub author: Author,
     pub id: String,
@@ -25,7 +25,7 @@ pub struct Post {
     pub url: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Author {
     pub id: String,
     pub name: String,
