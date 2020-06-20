@@ -35,7 +35,7 @@ impl Into<Feed> for Article {
             .map(|p| {
                 let url = &p.url;
                 Entry {
-                    title: p.title.clone(),
+                    title: p.title.replace("&", "&amp;"),
                     id: url.into(),
                     updated: p.updated_at.into(),
                     authors: vec![author.clone()],
