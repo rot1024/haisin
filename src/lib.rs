@@ -37,5 +37,11 @@ pub struct Author {
 pub trait Source {
     type Err;
 
-    async fn fetch(&self, name: &str) -> Result<Article, Self::Err>;
+    async fn fetch(&self, name: &str) -> Result<Article, Error<Self::Err>>;
+}
+
+#[derive(Debug)]
+pub enum Error<T> {
+    NotFound,
+    Misc(T),
 }

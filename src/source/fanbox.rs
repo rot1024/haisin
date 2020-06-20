@@ -1,11 +1,7 @@
-use actix_web::{
-    client::Client,
-    error::{ErrorBadGateway, ErrorNotFound},
-    Error, Result,
-};
+use actix_web::{client::Client, error::ErrorBadGateway, Result};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use haisin::{Article, Author, Post};
+use haisin::{Article, Author, Error, Post};
 use serde::Deserialize;
 use std::time::Duration;
 
@@ -94,9 +90,9 @@ struct User {
 
 #[async_trait(?Send)]
 impl super::Source for Fanbox {
-    type Err = Error;
+    type Err = actix_web::Error;
 
-    async fn fetch(&self, name: &str) -> Result<Article, Self::Err> {
+    async fn fetch(&self, name: &str) -> Result<Article, Error<Self::Err>> {
         let mut resp = Client::default()
             .get(format!(
                 "https://api.fanbox.cc/post.listCreator?creatorId={}&limit=10",
@@ -105,15 +101,16 @@ impl super::Source for Fanbox {
             .set_header("origin", format!("https://{}.fanbox.cc", name))
             .timeout(Duration::from_secs(10))
             .send()
-            .await?;
+            .await
+            .map_err(|e| Error::Misc(e.into()))?;
 
         if resp.status() == 404 {
-            return Err(ErrorNotFound("not found"));
+            return Err(Error::NotFound);
         } else if !resp.status().is_success() {
-            return Err(ErrorBadGateway("bad gateway"));
+            return Err(Error::Misc(ErrorBadGateway("bad gateway")));
         }
 
-        let mut body: Resp = resp.json().await?;
+        let mut body: Resp = resp.json().await.map_err(|e| Error::Misc(e.into()))?;
 
         body.id = name.into();
 

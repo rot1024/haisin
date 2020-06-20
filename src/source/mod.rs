@@ -1,6 +1,6 @@
-use actix_web::{Error, Result};
+use actix_web::Result;
 use fanbox::Fanbox;
-use haisin::{Article, Source};
+use haisin::{Article, Error, Source};
 use std::str::FromStr;
 
 mod fanbox;
@@ -32,9 +32,14 @@ impl Sources {
     }
 
     pub async fn fetch(&self, t: SourceType, name: &str) -> Option<Result<Article>> {
-        let src: &dyn Source<Err = Error> = match t {
+        let src: &dyn Source<Err = actix_web::Error> = match t {
             SourceType::Fanbox => Some(&self.fanbox),
         }?;
-        Some(src.fetch(name).await)
+        let res = src.fetch(name).await;
+        match res {
+            Err(Error::NotFound) => None,
+            Err(Error::Misc(err)) => Some(Err(err)),
+            Ok(result) => Some(Ok(result)),
+        }
     }
 }
