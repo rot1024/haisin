@@ -39,6 +39,10 @@ impl Sources {
         match res {
             Err(Error::NotFound) => None,
             Err(Error::Misc(err)) => Some(Err(err)),
+            Err(Error::ParseError(f)) => Some(Err(ErrorInternalServerError(format!(
+                "failed to parse: {}",
+                f
+            )))),
             Ok(result) => Some(Ok(result)),
         }
     }
