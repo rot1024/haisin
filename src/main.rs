@@ -6,7 +6,6 @@ use source::{SourceType, Sources};
 use std::str::FromStr;
 
 mod source;
-mod state;
 
 #[cfg(debug_assertions)]
 const IP: &'static str = "127.0.0.1";
@@ -24,16 +23,16 @@ struct Config {
     port: u16,
 }
 
+#[derive(Debug)]
+struct State(Sources);
+
 #[get("/{id}/{name}/feed")]
-async fn index(
-    path: web::Path<(String, String)>,
-    data: web::Data<state::State>,
-) -> Result<HttpResponse> {
+async fn index(path: web::Path<(String, String)>, data: web::Data<State>) -> Result<HttpResponse> {
     let t = SourceType::from_str(&path.0)
         .map_err::<HttpResponse, _>(|_| HttpResponse::NotFound().body("not found"))?;
 
     let feed: Feed = data
-        .sources()
+        .0
         .fetch(t, &path.1)
         .await
         .ok_or(HttpResponse::NotFound().body("not found"))??
@@ -53,7 +52,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-            .data(state::State::new(Sources::new()))
+            .data(State(Sources::new()))
             .wrap(Logger::default())
             .service(index)
             .default_service(web::route().to(|| HttpResponse::NotFound().body("not found")))
