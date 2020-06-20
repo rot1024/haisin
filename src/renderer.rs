@@ -15,7 +15,7 @@ impl Into<Feed> for Article {
             name: self
                 .posts
                 .get(0)
-                .map(|u| u.author.name.clone())
+                .map(|u| u.author.name.escape())
                 .unwrap_or_else(|| "".into()),
             email: None,
             uri: None,
@@ -35,7 +35,7 @@ impl Into<Feed> for Article {
             .map(|p| {
                 let url = &p.url;
                 Entry {
-                    title: p.title.replace("&", "&amp;"),
+                    title: p.title.escape(),
                     id: url.into(),
                     updated: p.updated_at.into(),
                     authors: vec![author.clone()],
@@ -52,11 +52,11 @@ impl Into<Feed> for Article {
                     published: Some(p.published_at.into()),
                     rights: None,
                     source: None,
-                    summary: p.summary,
+                    summary: p.summary.map(|s| s.escape()),
                     content: p.content.map(|c| Content {
                         content_type: Some("text".into()),
                         src: Some(url.into()),
-                        value: Some(c.clone()),
+                        value: Some(c.escape()),
                     }),
                     extensions: HashMap::new(),
                 }
@@ -64,7 +64,7 @@ impl Into<Feed> for Article {
             .collect();
 
         Feed {
-            title: self.title,
+            title: self.title.escape(),
             id: self.url,
             updated: updated.into(),
             authors: vec![author],
@@ -80,5 +80,15 @@ impl Into<Feed> for Article {
             extensions: HashMap::new(),
             namespaces: HashMap::new(),
         }
+    }
+}
+
+trait Escape {
+    fn escape(&self) -> Self;
+}
+
+impl Escape for String {
+    fn escape(&self) -> Self {
+        self.replace("&", "&amp;")
     }
 }
